@@ -66,23 +66,23 @@ RUN echo '[ ! -z "$TERM" -a -r /etc/motd ] && cat /etc/motd' >> /etc/bash.bashrc
 
 RUN apt-get update \
     && apt-get install -y --no-install-recommends \
-        build-essential \
-        dumb-init \
-        git \
-        gnupg-agent \
-        libffi-dev \
-        libssl-dev \
-        libyaml-dev \
-        openssh-client \
-        patch \
-        python3-dev \
-        python3-pip \
-        python3-setuptools \
-        python3-wheel \
-        rsync \
-        sshpass \
-        sudo \
-        vim-tiny \
+    build-essential \
+    dumb-init \
+    git \
+    gnupg-agent \
+    libffi-dev \
+    libssl-dev \
+    libyaml-dev \
+    openssh-client \
+    patch \
+    python3-dev \
+    python3-pip \
+    python3-setuptools \
+    python3-wheel \
+    rsync \
+    sshpass \
+    sudo \
+    vim-tiny \
     && python3 -m pip install --upgrade pip \
     && update-alternatives --install /usr/bin/python python /usr/bin/python3 1 \
     && rm -rf /var/lib/apt/lists/*
@@ -106,7 +106,7 @@ RUN git clone https://github.com/osism/release /release \
 WORKDIR /
 
 # install required python packages
-
+RUN sed -i -e "s/ansible>=2.10,<2.11/ansible>=2.9,<=2.9/" /requirements.txt
 RUN pip3 install --no-cache-dir -r /requirements.txt
 
 # set ansible version in the motd
@@ -118,19 +118,19 @@ RUN ansible_version=$(python3 -c 'import ansible; print(ansible.release.__versio
 
 # internal use only
 RUN mkdir -p \
-        /ansible \
-        /ansible/action_plugins \
-        /ansible/filter_plugins \
-        /ansible/library \
-        /ansible/roles \
-        /ansible/tasks
+    /ansible \
+    /ansible/action_plugins \
+    /ansible/filter_plugins \
+    /ansible/library \
+    /ansible/roles \
+    /ansible/tasks
 
 # exportes as volumes
 RUN mkdir -p \
-        /ansible/cache \
-        /ansible/logs \
-        /ansible/secrets \
-        /share
+    /ansible/cache \
+    /ansible/logs \
+    /ansible/secrets \
+    /share
 
 # install required ansible collections & roles
 
@@ -145,13 +145,13 @@ RUN if [ $OPENSTACK_VERSION = "master" ]; then git clone https://github.com/open
     && if [ $OPENSTACK_VERSION != "master" ]; then git clone -b stable/$OPENSTACK_VERSION https://github.com/openstack/kolla-ansible /repository; fi
 
 RUN for patchfile in $(find /patches/$OPENSTACK_VERSION -name "*.patch"); do \
-        echo $patchfile; \
-        ( cd /repository && patch --forward --batch -p1 --dry-run ) < $patchfile || exit 1; \
-        ( cd /repository && patch --forward --batch -p1 ) < $patchfile; \
-       done \
+    echo $patchfile; \
+    ( cd /repository && patch --forward --batch -p1 --dry-run ) < $patchfile || exit 1; \
+    ( cd /repository && patch --forward --batch -p1 ) < $patchfile; \
+    done \
     && rsync -avz /overlays/ /repository/
 
-# project specific instructions
+# project specific instructionsrequirements.txt
 
 RUN cp /repository/ansible/group_vars/all.yml /ansible/group_vars/all/defaults-kolla.yml \
     && ln -s /ansible/kolla-gather-facts.yml /ansible/gather-facts.yml \
@@ -186,22 +186,22 @@ RUN chown -R dragon: /ansible /share
 
 RUN apt-get clean \
     && apt-get remove -y  \
-      build-essential \
-      git \
-      libffi-dev \
-      libssl-dev \
-      libyaml-dev \
-      python3-dev \
+    build-essential \
+    git \
+    libffi-dev \
+    libssl-dev \
+    libyaml-dev \
+    python3-dev \
     && apt-get autoremove -y \
     && rm -rf \
-      /overlays \
-      /patches \
-      /release \
-      /root/.cache \
-      /tmp/* \
-      /usr/share/doc/* \
-      /usr/share/man/* \
-      /var/tmp/*
+    /overlays \
+    /patches \
+    /release \
+    /root/.cache \
+    /tmp/* \
+    /usr/share/doc/* \
+    /usr/share/man/* \
+    /var/tmp/*
 
 VOLUME ["/ansible/cache", "/ansible/logs", "/ansible/secrets", "/share"]
 
@@ -211,7 +211,7 @@ WORKDIR /ansible
 ENTRYPOINT ["/usr/bin/dumb-init", "--"]
 
 LABEL "org.opencontainers.image.documentation"="https://docs.osism.de" \
-      "org.opencontainers.image.licenses"="ASL 2.0" \
-      "org.opencontainers.image.source"="https://github.com/osism/docker-image-kolla-ansible" \
-      "org.opencontainers.image.url"="https://www.osism.de" \
-      "org.opencontainers.image.vendor"="Betacloud Solutions GmbH"
+    "org.opencontainers.image.licenses"="ASL 2.0" \
+    "org.opencontainers.image.source"="https://github.com/osism/docker-image-kolla-ansible" \
+    "org.opencontainers.image.url"="https://www.osism.de" \
+    "org.opencontainers.image.vendor"="Betacloud Solutions GmbH"
