@@ -33,9 +33,9 @@ fi
 
 docker buildx build \
     --load \
-    --env HTTP_PROXY=$http_proxy \
-    --env HTTPS_PROXY=$https_proxy \
-    --env NO_PROXY=$no_proxy \
+    --build-arg http_proxy=$http_proxy \
+    --build-arg https_proxy=$https_proxy \
+    --build-arg no_proxy=$no_proxy \
     --build-arg "OPENSTACK_VERSION=$OPENSTACK_VERSION" \
     --build-arg "UBUNTU_VERSION=$UBUNTU_VERSION" \
     --build-arg "VERSION=$VERSION" \
