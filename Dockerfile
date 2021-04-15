@@ -47,7 +47,6 @@ COPY files/dragon_sudoers /etc/sudoers.d/dragon_sudoers
 COPY files/src /src
 
 # add inventory files
-
 ADD https://raw.githubusercontent.com/osism/cfg-generics/master/inventory/50-ceph /ansible/inventory.generics/50-ceph
 ADD https://raw.githubusercontent.com/osism/cfg-generics/master/inventory/51-ceph /ansible/inventory.generics/51-ceph
 
@@ -55,15 +54,12 @@ ADD https://raw.githubusercontent.com/osism/cfg-generics/master/inventory/50-kol
 ADD https://raw.githubusercontent.com/osism/cfg-generics/master/inventory/51-kolla /ansible/inventory.generics/51-kolla
 
 # fix hadolint DL4006
-
 SHELL ["/bin/bash", "-o", "pipefail", "-c"]
 
 # show motd
-
 RUN echo '[ ! -z "$TERM" -a -r /etc/motd ] && cat /etc/motd' >> /etc/bash.bashrc
 
 # upgrade/install required packages
-
 RUN apt-get update \
     && apt-get install -y --no-install-recommends \
     build-essential \
@@ -88,7 +84,6 @@ RUN apt-get update \
     && rm -rf /var/lib/apt/lists/*
 
 # add user
-
 RUN chmod 0440 /etc/sudoers.d/dragon_sudoers \
     && groupadd -g $GROUP_ID dragon \
     && groupadd -g $GROUP_ID_DOCKER docker \
@@ -108,14 +103,13 @@ WORKDIR /
 # install required python packages
 RUN sed -i -e "s/ansible>=2.10,<2.11/ansible>=2.9,<=2.9/" /requirements.txt
 RUN pip3 install --no-cache-dir -r /requirements.txt
+RUN pip3 install docker
 
 # set ansible version in the motd
-
 RUN ansible_version=$(python3 -c 'import ansible; print(ansible.release.__version__)') \
     && sed -i -e "s/ANSIBLE_VERSION/$ansible_version/" /etc/motd
 
 # create required directories
-
 # internal use only
 RUN mkdir -p \
     /ansible \
@@ -133,14 +127,12 @@ RUN mkdir -p \
     /share
 
 # install required ansible collections & roles
-
 RUN ansible-galaxy role install -v -f -r /ansible/galaxy/requirements.yml -p /usr/share/ansible/roles \
     && ln -s /usr/share/ansible/roles /ansible/galaxy \
     && ansible-galaxy collection install -v -f -r /ansible/galaxy/requirements.yml -p /usr/share/ansible/collections \
     && ln -s /usr/share/ansible/collections /ansible/collections
 
 # prepare project repository
-
 RUN if [ $OPENSTACK_VERSION = "master" ]; then git clone https://github.com/openstack/kolla-ansible /repository; fi \
     && if [ $OPENSTACK_VERSION != "master" ]; then git clone -b stable/$OPENSTACK_VERSION https://github.com/openstack/kolla-ansible /repository; fi
 
@@ -152,7 +144,6 @@ RUN for patchfile in $(find /patches/$OPENSTACK_VERSION -name "*.patch"); do \
     && rsync -avz /overlays/ /repository/
 
 # project specific instructionsrequirements.txt
-
 RUN cp /repository/ansible/group_vars/all.yml /ansible/group_vars/all/defaults-kolla.yml \
     && ln -s /ansible/kolla-gather-facts.yml /ansible/gather-facts.yml \
     && pip3 install --no-cache-dir -r /repository/requirements.txt \
@@ -179,11 +170,9 @@ RUN cp /repository/ansible/group_vars/all.yml /ansible/group_vars/all/defaults-k
 RUN python3 -m ara.setup.env > /ansible/ara.env
 
 # set correct permssions
-
 RUN chown -R dragon: /ansible /share
 
 # cleanup
-
 RUN apt-get clean \
     && apt-get remove -y  \
     build-essential \
